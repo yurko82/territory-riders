@@ -1,9 +1,9 @@
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Platform } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Platform } from "react-native";
 import { useColors } from "@/hooks/use-colors";
 
 export default function TabLayout() {
@@ -16,6 +16,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.tint,
+        tabBarInactiveTintColor: colors.muted,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
@@ -26,15 +27,13 @@ export default function TabLayout() {
           borderTopColor: colors.border,
           borderTopWidth: 0.5,
         },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: "700" },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: "Карта", tabBarIcon: ({ color }) => <IconSymbol size={23} name="map.fill" color={color} /> }} />
+      <Tabs.Screen name="ride" options={{ title: "Поїздка", tabBarIcon: ({ color }) => <IconSymbol size={23} name="bicycle" color={color} /> }} />
+      <Tabs.Screen name="activity" options={{ title: "Події", tabBarIcon: ({ color }) => <IconSymbol size={23} name="bell.fill" color={color} /> }} />
+      <Tabs.Screen name="profile" options={{ title: "Профіль", tabBarIcon: ({ color }) => <IconSymbol size={23} name="person.fill" color={color} /> }} />
     </Tabs>
   );
 }

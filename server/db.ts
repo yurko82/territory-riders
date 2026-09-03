@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { activityEvents, InsertActivityEvent, InsertRide, InsertUser, territories, users, rides } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,28 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function listTerritories() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(territories).orderBy(desc(territories.updatedAt));
+}
+
+export async function listRecentEvents(limit = 30) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(activityEvents).orderBy(desc(activityEvents.createdAt)).limit(limit);
+}
+
+export async function createRide(ride: InsertRide) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(rides).values(ride);
+  return true;
+}
+
+export async function createActivityEvent(event: InsertActivityEvent) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(activityEvents).values(event);
+  return true;
+}

@@ -18,4 +18,4 @@
 - [x] Візуальна перевірка Android/web preview та перевірка TypeScript
 - [x] Синхронізувати актуальний checkpoint із GitHub
 - [x] Завантажити отриманий APK як GitHub Release asset для тестування
-- [ ] Зберегти дорожню карту roadmap.md у GitHub для наступних ітерацій
+- [x] Зберегти дорожню карту roadmap.md у GitHub для наступних ітерацій

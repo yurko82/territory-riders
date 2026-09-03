@@ -1,0 +1,97 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Android APK with EAS
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build APK on EAS
+        id: eas-build
+        env:
+          CI: "1"
+        run: |
+          eas build \
+            --platform android \
+            --profile preview \
+            --non-interactive \
+            --json > eas-build.json
+          cat eas-build.json
+
+      - name: Download APK
+        id: download-apk
+        env:
+          BUILD_JSON: eas-build.json
+        run: |
+          APK_URL=$(node - <<'NODE'
+          const fs = require('fs');
+          const raw = fs.readFileSync(process.env.BUILD_JSON, 'utf8');
+          const data = JSON.parse(raw);
+          const build = Array.isArray(data) ? data[0] : data;
+          const url = build?.artifacts?.buildUrl || build?.buildArtifact?.url || '';
+          if (!url) {
+            console.error('EAS did not return an APK URL');
+            process.exit(1);
+          }
+          process.stdout.write(url);
+          NODE
+          )
+          curl --fail --location --retry 3 "$APK_URL" --output territory-riders-${GITHUB_RUN_NUMBER}.apk
+          file territory-riders-${GITHUB_RUN_NUMBER}.apk
+          sha256sum territory-riders-${GITHUB_RUN_NUMBER}.apk | tee territory-riders-${GITHUB_RUN_NUMBER}.apk.sha256
+
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: territory-riders-apk-${{ github.run_number }}
+          path: |
+            territory-riders-${{ github.run_number }}.apk
+            territory-riders-${{ github.run_number }}.apk.sha256
+          retention-days: 30
+
+      - name: Publish APK to GitHub Release for version tags
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APK_PATH: territory-riders-${{ github.run_number }}.apk
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG_NAME" "$APK_PATH" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Territory Riders $TAG_NAME" \
+            --generate-notes

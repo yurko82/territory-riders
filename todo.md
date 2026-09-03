@@ -19,3 +19,4 @@
 - [x] Синхронізувати актуальний checkpoint із GitHub
 - [x] Завантажити отриманий APK як GitHub Release asset для тестування
 - [x] Зберегти дорожню карту roadmap.md у GitHub для наступних ітерацій
+- [x] Налаштувати автоматичну APK-збірку через GitHub Actions та Expo EAS (потрібно додати EXPO_TOKEN у GitHub Secrets)
